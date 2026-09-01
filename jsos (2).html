@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSOS — ระบบปฏิบัติการเพื่อวิจารณญาณและกลยุทธ์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Noto+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f4ef;
+    --panel:#ffffff;
+    --panel-alt:#eceae3;
+    --ink:#1f1e1b;
+    --ink-soft:#5c584f;
+    --ink-faint:#8a8579;
+    --border:#dfdbd0;
+    --border-strong:#c9c4b6;
+    --accent:#a9752e;
+    --accent-soft:#f1e3cd;
+    --accent-ink:#5c3f18;
+    --rust:#8b3a2b;
+    --rust-soft:#f3e0da;
+    --rail-bg:#17181a;
+    --rail-ink:#c9c6bd;
+    --rail-ink-dim:#7c7a74;
+    --radius:3px;
+    --shadow-lift: 0 1px 2px rgba(20,18,14,.04), 0 8px 24px rgba(20,18,14,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans Thai','Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    line-height:1.65;
+  }
+  h1,h2,h3,.serif{font-family:'Fraunces','Noto Sans Thai',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  button{font-family:inherit;cursor:pointer;}
+  input,textarea,select{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+
+  #app{display:flex;min-height:100vh;}
+
+  /* ---------- RAIL ---------- */
+  .rail{
+    width:216px;
+    flex-shrink:0;
+    background:var(--rail-bg);
+    color:var(--rail-ink);
+    display:flex;
+    flex-direction:column;
+    padding:26px 18px;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .rail-mark{
+    font-family:'Fraunces',serif;
+    font-size:21px;
+    font-weight:500;
+    color:#f2efe8;
+    letter-spacing:0.02em;
+    margin-bottom:2px;
+  }
+  .rail-sub{
+    font-size:11.5px;
+    color:var(--rail-ink-dim);
+    margin-bottom:34px;
+    line-height:1.5;
+    max-width:160px;
+  }
+  .rail-date{
+    font-size:11px;
+    color:var(--rail-ink-dim);
+    margin-bottom:8px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .rail nav{display:flex;flex-direction:column;gap:1px;margin-bottom:auto;}
+  .rail-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 10px;
+    border-radius:var(--radius);
+    color:var(--rail-ink);
+    background:transparent;
+    border:none;
+    text-align:left;
+    font-size:13.5px;
+    transition:background .12s ease, color .12s ease;
+  }
+  .rail-item:hover{background:rgba(255,255,255,.06);}
+  .rail-item.active{background:rgba(169,117,46,.22);color:#f2efe8;}
+  .rail-item .dot{width:5px;height:5px;border-radius:50%;background:var(--rail-ink-dim);flex-shrink:0;}
+  .rail-item.active .dot{background:var(--accent);}
+  .rail-foot{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);}
+  .think-fab{
+    width:100%;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:11px 14px;
+    border-radius:var(--radius);
+    font-size:13.5px;
+    font-weight:500;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:14px;
+    transition:background .12s ease;
+  }
+  .think-fab:hover{background:#8f6326;}
+
+  /* ---------- MAIN ---------- */
+  main{flex:1;min-width:0;padding:52px 56px 90px;max-width:960px;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .eyebrow{color:var(--ink-faint);font-size:12.5px;margin:0 0 6px;}
+  .page-head{margin-bottom:38px;}
+  .page-head h1{font-size:28px;font-weight:400;margin:0 0 8px;color:var(--ink);}
+  .page-head p{color:var(--ink-soft);margin:0;max-width:58ch;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:26px 28px;
+  }
+  .panel-alt{background:var(--panel-alt);}
+
+  /* Today */
+  .objective-card{padding:32px 34px;margin-bottom:20px;}
+  .objective-card label.field-label{font-size:12px;color:var(--ink-faint);display:block;margin-bottom:10px;}
+  .objective-text{
+    font-family:'Fraunces','Noto Sans Thai',serif;
+    font-size:24px;
+    font-weight:400;
+    line-height:1.4;
+    border:none;
+    outline:none;
+    width:100%;
+    resize:none;
+    background:transparent;
+    color:var(--ink);
+  }
+  .why-text{
+    border:none;outline:none;background:transparent;width:100%;
+    color:var(--ink-soft);font-size:14.5px;resize:none;margin-top:14px;
+    border-top:1px solid var(--border);padding-top:14px;
+  }
+  .two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:860px){.two-col{grid-template-columns:1fr;}}
+
+  .priorities-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .priorities-list li{display:flex;align-items:center;gap:12px;}
+  .pill-num{
+    width:22px;height:22px;border-radius:50%;
+    border:1px solid var(--border-strong);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;color:var(--ink-faint);flex-shrink:0;font-family:'IBM Plex Mono',monospace;
+  }
+  .priorities-list input{
+    flex:1;border:none;border-bottom:1px solid transparent;background:transparent;
+    padding:4px 0;font-size:14.5px;color:var(--ink);outline:none;
+  }
+  .priorities-list input:focus{border-bottom:1px solid var(--border-strong);}
+  .priorities-list input::placeholder{color:var(--ink-faint);}
+
+  .section-title{font-size:13px;color:var(--ink-faint);margin:0 0 14px;letter-spacing:.01em;}
+
+  .btn{
+    border:1px solid var(--border-strong);
+    background:var(--panel);
+    padding:9px 16px;
+    border-radius:var(--radius);
+    font-size:13.5px;
+    color:var(--ink);
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .btn:hover{border-color:var(--ink-faint);}
+  .btn-primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .btn-primary:hover{background:#8f6326;border-color:#8f6326;}
+  .btn-ghost{border-color:transparent;background:transparent;color:var(--ink-soft);}
+  .btn-ghost:hover{border-color:var(--border);}
+  .btn-sm{padding:6px 11px;font-size:12.5px;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+
+  .inbox-item{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+    padding:12px 0;border-bottom:1px solid var(--border);
+  }
+  .inbox-item:last-child{border-bottom:none;}
+  .inbox-item .txt{font-size:14px;color:var(--ink);}
+  .tag{
+    font-size:10.5px;color:var(--ink-faint);border:1px solid var(--border);
+    padding:2px 7px;border-radius:20px;font-family:'IBM Plex Mono',monospace;white-space:nowrap;
+  }
+
+  .empty-state{
+    text-align:left;padding:34px 6px;color:var(--ink-soft);
+  }
+  .empty-state p{margin:0 0 16px;max-width:46ch;font-size:14.5px;}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(23,22,19,.42);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:24px;
+  }
+  .overlay.active{display:flex;}
+  .modal{
+    background:var(--panel);border-radius:4px;max-width:560px;width:100%;
+    padding:36px 38px;box-shadow:var(--shadow-lift);max-height:86vh;overflow-y:auto;
+  }
+  .modal h2{font-size:20px;font-weight:400;margin:0 0 4px;}
+  .modal .modal-sub{color:var(--ink-soft);font-size:13.5px;margin:0 0 26px;}
+  .q-block{margin-bottom:22px;}
+  .q-block label{display:block;font-size:14px;color:var(--ink);margin-bottom:8px;font-weight:500;}
+  .q-block textarea, .q-block input[type=text]{
+    width:100%;border:1px solid var(--border);border-radius:var(--radius);
+    padding:10px 12px;font-size:14px;outline:none;resize:vertical;min-height:52px;
+    color:var(--ink);background:var(--bg);
+  }
+  .q-block textarea:focus, .q-block input:focus{border-color:var(--ink-faint);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;}
+
+  /* Think view */
+  .think-topic-bar{display:flex;gap:10px;margin-bottom:26px;}
+  .think-topic-bar input{
+    flex:1;border:1px solid var(--border);border-radius:var(--radius);
+    padding:12px 14px;font-size:15px;outline:none;background:var(--panel);
+  }
+  .think-topic-bar input:focus{border-color:var(--ink-faint);}
+
+  .tabs{display:flex;gap:2px;margin-bottom:22px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .tab-btn{
+    background:transparent;border:none;padding:10px 4px;margin-right:22px;
+    font-size:13.5px;color:var(--ink-faint);border-bottom:2px solid transparent;
+    transform:translateY(1px);
+  }
+  .tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .qe-item{padding:18px 0;border-bottom:1px solid var(--border);}
+  .qe-item:last-child{border-bottom:none;}
+  .qe-item .qe-label{font-family:'Fraunces','Noto Sans Thai',serif;font-size:16px;color:var(--ink);margin-bottom:2px;}
+  .qe-item .qe-help{font-size:12.5px;color:var(--ink-faint);margin-bottom:10px;}
+  .qe-item textarea{
+    width:100%;border:none;border-bottom:1px solid var(--border);background:transparent;
+    outline:none;font-size:14.5px;resize:none;padding:6px 0;color:var(--ink);
+  }
+  .qe-item textarea:focus{border-bottom-color:var(--ink-faint);}
+
+  .hyp-grid{display:grid;grid-template-columns:1fr;gap:0;}
+  .hyp-row{padding:16px 0;border-bottom:1px solid var(--border);}
+  .hyp-row:last-child{border-bottom:none;}
+  .hyp-row .hl{font-size:12px;color:var(--ink-faint);margin-bottom:8px;font-family:'IBM Plex Mono',monospace;letter-spacing:.02em;}
+  .hyp-row textarea{width:100%;border:none;outline:none;background:transparent;font-size:14.5px;resize:none;color:var(--ink);padding:0;}
+  .status-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .status-chip{
+    padding:5px 12px;border-radius:20px;font-size:12.5px;border:1px solid var(--border);
+    background:var(--panel);color:var(--ink-soft);
+  }
+  .status-chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);}
+
+  .tree-wrap{display:flex;flex-direction:column;gap:0;}
+  .tree-root{
+    font-family:'Fraunces','Noto Sans Thai',serif;font-size:18px;background:var(--panel-alt);
+    border:1px solid var(--border);padding:14px 18px;border-radius:var(--radius);margin-bottom:18px;
+  }
+  .branch{
+    display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--border);
+  }
+  .branch-label{
+    width:120px;flex-shrink:0;font-size:13px;color:var(--ink-soft);padding-top:6px;
+  }
+  .branch-nodes{flex:1;display:flex;flex-direction:column;gap:6px;}
+  .branch-node{display:flex;align-items:center;gap:8px;}
+  .branch-node .stem{width:12px;height:1px;background:var(--border-strong);flex-shrink:0;}
+  .branch-node input{
+    flex:1;border:none;border-bottom:1px solid transparent;background:transparent;
+    font-size:13.5px;padding:3px 0;outline:none;color:var(--ink);
+  }
+  .branch-node input:focus{border-bottom-color:var(--border-strong);}
+  .branch-node button{background:none;border:none;color:var(--ink-faint);font-size:15px;padding:0 4px;}
+  .branch-add{font-size:12.5px;color:var(--accent-ink);background:none;border:none;padding:2px 0;text-align:left;width:fit-content;}
+
+  /* Decisions */
+  .decision-card{padding:24px 26px;margin-bottom:16px;cursor:pointer;transition:border-color .12s ease;}
+  .decision-card:hover{border-color:var(--ink-faint);}
+  .decision-card h3{font-family:'Fraunces','Noto Sans Thai',serif;font-weight:400;font-size:17px;margin:0 0 8px;}
+  .decision-meta{display:flex;gap:14px;font-size:12px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;flex-wrap:wrap;}
+  .conf-badge{padding:2px 9px;border-radius:20px;border:1px solid var(--border);font-family:'Noto Sans Thai',sans-serif;}
+  .conf-สูง{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);}
+  .conf-กลาง{background:var(--panel-alt);}
+  .conf-ต่ำ{background:var(--rust-soft);border-color:var(--rust);color:var(--rust);}
+
+  .option-row{display:flex;gap:10px;margin-bottom:8px;align-items:center;}
+  .option-row input{flex:1;}
+  .criteria-table{width:100%;border-collapse:collapse;margin-top:6px;}
+  .criteria-table th{text-align:left;font-size:11.5px;color:var(--ink-faint);font-weight:500;padding:6px 8px;font-family:'IBM Plex Mono',monospace;}
+  .criteria-table td{padding:6px 8px;border-top:1px solid var(--border);}
+  .criteria-table input[type=number]{width:56px;border:1px solid var(--border);border-radius:3px;padding:4px 6px;font-size:13px;}
+  .criteria-table input[type=text]{border:none;background:transparent;font-size:13.5px;width:100%;outline:none;}
+  .score-cell{font-family:'IBM Plex Mono',monospace;font-size:13.5px;text-align:right;}
+  .score-total-row td{font-weight:600;border-top:2px solid var(--ink);}
+  .field-inline{margin-top:16px;}
+  .field-inline label{display:block;font-size:12.5px;color:var(--ink-faint);margin-bottom:6px;}
+  .field-inline textarea, .field-inline input, .field-inline select{
+    width:100%;border:1px solid var(--border);border-radius:3px;padding:8px 10px;font-size:14px;outline:none;
+  }
+
+  /* Review */
+  .score-bar-row{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+  .score-bar-row .lbl{width:100px;font-size:13px;color:var(--ink-soft);flex-shrink:0;}
+  .score-track{flex:1;height:7px;background:var(--panel-alt);border-radius:4px;overflow:hidden;}
+  .score-fill{height:100%;background:var(--accent);border-radius:4px;}
+  .score-bar-row .val{width:28px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-faint);}
+  .self-rate{display:flex;gap:6px;}
+  .self-rate button{
+    width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--panel);
+    font-size:13px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;
+  }
+  .self-rate button.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .history-item{padding:16px 0;border-bottom:1px solid var(--border);}
+  .history-item:last-child{border-bottom:none;}
+  .history-item .hdate{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-faint);margin-bottom:6px;}
+  .history-item .hline{font-size:13.5px;color:var(--ink);margin:2px 0;}
+  .history-item .hline b{color:var(--ink-soft);font-weight:500;}
+
+  .stub{padding:60px 6px;color:var(--ink-soft);}
+  .stub h3{font-family:'Fraunces','Noto Sans Thai',serif;font-weight:400;font-size:19px;margin:0 0 8px;color:var(--ink);}
+  .stub p{max-width:50ch;font-size:14.5px;}
+
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(10px);
+    background:var(--rail-bg);color:#f2efe8;padding:11px 20px;border-radius:20px;
+    font-size:13px;opacity:0;transition:opacity .25s ease, transform .25s ease;pointer-events:none;z-index:80;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:760px){
+    #app{flex-direction:column;}
+    .rail{position:static;width:100%;height:auto;flex-direction:row;align-items:center;padding:14px 16px;gap:14px;}
+    .rail-sub,.rail-date,.rail-foot,.rail nav{display:none;}
+    .rail-mark{margin:0;}
+    main{padding:26px 20px 100px;}
+    .bottom-nav{
+      position:fixed;bottom:0;left:0;right:0;background:var(--rail-bg);display:flex;z-index:40;
+      padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    }
+    .bottom-nav button{flex:1;background:none;border:none;color:var(--rail-ink-dim);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;}
+    .bottom-nav button.active{color:#f2efe8;}
+    .bottom-nav .dot{width:5px;height:5px;border-radius:50%;background:transparent;}
+    .bottom-nav button.active .dot{background:var(--accent);}
+    .think-fab-mobile{
+      position:fixed;bottom:66px;right:18px;width:52px;height:52px;border-radius:50%;
+      background:var(--accent);color:#fff;border:none;font-size:22px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:41;
+    }
+  }
+  @media (min-width:761px){ .bottom-nav,.think-fab-mobile{display:none;} }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <aside class="rail">
+    <div class="rail-mark">JSOS</div>
+    <div class="rail-sub">ระบบปฏิบัติการเพื่อวิจารณญาณและกลยุทธ์</div>
+    <button class="think-fab" onclick="openQuickThink()">+ คิด</button>
+    <nav id="railNav"></nav>
+    <div class="rail-foot">
+      <div class="rail-date mono" id="railDate"></div>
+    </div>
+  </aside>
+
+  <main>
+    <!-- วันนี้ -->
+    <section class="view" id="view-today">
+      <div class="page-head">
+        <p class="eyebrow" id="greeting">สวัสดีตอนเช้า</p>
+        <h1 id="todayDate" class="serif"></h1>
+        <p>วันนี้อะไรคือสิ่งสำคัญที่สุด?</p>
+      </div>
+
+      <div class="card objective-card">
+        <label class="field-label">เป้าหมายของวันนี้</label>
+        <textarea class="objective-text" id="objectiveInput" rows="2" placeholder="อะไรคือสิ่งเดียวที่จะทำให้วันนี้มีความหมาย?" oninput="autoGrow(this); saveObjective()"></textarea>
+        <textarea class="why-text" id="whyInput" rows="1" placeholder="ทำไมมันถึงสำคัญ?" oninput="autoGrow(this); saveObjective()"></textarea>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <p class="section-title">ลำดับความสำคัญ</p>
+          <ul class="priorities-list" id="prioritiesList"></ul>
+        </div>
+        <div class="card panel-alt">
+          <p class="section-title">ตั้งทิศทางของวันนี้</p>
+          <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;">เช็กอินสั้นๆ เพื่อกำหนดทิศทางวันนี้ ก่อนที่วันจะพาคุณไปเอง</p>
+          <button class="btn btn-primary" onclick="openCheckIn()">ตั้งทิศทางของคุณ →</button>
+          <div id="checkinSummary" style="margin-top:16px;"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <p class="section-title" style="margin:0;">กล่องรับความคิด</p>
+          <button class="btn btn-sm btn-ghost" onclick="goto('think')">เปิดพื้นที่คิด →</button>
+        </div>
+        <div id="inboxPreview"></div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <p class="section-title" style="margin:0;">ปิดวันของคุณ</p>
+        </div>
+        <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 14px;">สองนาทีคืนนี้ อาจเปลี่ยนวิธีทำงานของคุณพรุ่งนี้</p>
+        <button class="btn" onclick="goto('review')">ทบทวนวันนี้ →</button>
+      </div>
+    </section>
+
+    <!-- คิด -->
+    <section class="view" id="view-think">
+      <div class="page-head">
+        <p class="eyebrow">คิด</p>
+        <h1 class="serif">คุณกำลังคิดเรื่องอะไรอยู่?</h1>
+        <p>บันทึกไว้ก่อนอย่างเร็วๆ แล้วค่อยกลับมาคลี่ทีหลัง ตรงนี้ยังไม่ต้องเรียบร้อยก็ได้</p>
+      </div>
+
+      <div class="think-topic-bar">
+        <input type="text" id="thinkTopicInput" placeholder="เช่น ทำไมยอดขายถึงลดลง?" oninput="saveThinkTopic()">
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="questions" onclick="switchThinkTab('questions')">ชุดคำถาม</button>
+        <button class="tab-btn" data-tab="hypothesis" onclick="switchThinkTab('hypothesis')">สมมติฐาน</button>
+        <button class="tab-btn" data-tab="tree" onclick="switchThinkTab('tree')">แผนผังปัญหา</button>
+        <button class="tab-btn" data-tab="inbox" onclick="switchThinkTab('inbox')">กล่องรับความคิด</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-questions">
+        <div class="card" id="questionEngine"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-hypothesis">
+        <div class="card">
+          <div class="hyp-grid" id="hypothesisCanvas"></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-tree">
+        <div class="tree-root" id="treeRootLabel">ปัญหา</div>
+        <div class="tree-wrap" id="branchList"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-inbox">
+        <div class="card" id="inboxFull"></div>
+      </div>
+    </section>
+
+    <!-- การตัดสินใจ -->
+    <section class="view" id="view-decisions">
+      <div class="page-head">
+        <p class="eyebrow">การตัดสินใจ</p>
+        <h1 class="serif">ตัวเลือกของคุณมีอะไรบ้าง?</h1>
+        <p>การตัดสินใจแต่ละครั้งคือวิจารณญาณที่ประทับเวลาไว้ — คุ้มค่าที่จะจดไว้เพื่อกลับมาทบทวนภายหลัง</p>
+      </div>
+      <div id="decisionsList"></div>
+      <div style="margin-top:8px;">
+        <button class="btn btn-primary" onclick="newDecision()">ตัดสินใจเรื่องใหม่</button>
+      </div>
+      <div id="decisionEditor" style="margin-top:24px;"></div>
+    </section>
+
+    <!-- ทบทวน -->
+    <section class="view" id="view-review">
+      <div class="page-head">
+        <p class="eyebrow">ทบทวน</p>
+        <h1 class="serif">วันนี้สอนอะไรคุณบ้าง?</h1>
+        <p>วันของคุณคือข้อมูล นี่คือจุดที่มันกลายเป็นวิจารณญาณ</p>
+      </div>
+
+      <div class="card" id="reviewToday"></div>
+
+      <div class="card" style="margin-top:24px;">
+        <p class="section-title">สัปดาห์นี้</p>
+        <div id="weeklyBars"></div>
+      </div>
+
+      <div class="card" style="margin-top:24px;">
+        <p class="section-title">ประวัติย้อนหลัง</p>
+        <div id="reviewHistory"></div>
+      </div>
+    </section>
+
+    <!-- หลักฐาน (เฟส 2) -->
+    <section class="view" id="view-evidence">
+      <div class="page-head">
+        <p class="eyebrow">หลักฐาน</p>
+        <h1 class="serif">ข้อเท็จจริง สมมติฐาน หรือการตีความ?</h1>
+      </div>
+      <div class="stub">
+        <h3>จะเปิดใช้เมื่อวงจรประจำวันเดินเครื่องแล้ว</h3>
+        <p>คลังหลักฐานเป็นชั้นที่จะเพิ่มเข้ามาในเฟสสอง ต่อยอดจาก วันนี้ / คิด / การตัดสินใจ และ ทบทวน มันจะให้คุณบันทึกข้อเท็จจริงพร้อมแหล่งที่มา วันที่ และระดับความมั่นใจ — และแยกมันออกจากสมมติฐานกับการตีความให้ชัดเจน</p>
+      </div>
+    </section>
+
+    <!-- ความรู้ (เฟส 2) -->
+    <section class="view" id="view-knowledge">
+      <div class="page-head">
+        <p class="eyebrow">ความรู้</p>
+        <h1 class="serif">เชื่อมโยงความคิด ไม่ใช่แค่เก็บมันไว้</h1>
+      </div>
+      <div class="stub">
+        <h3>จะเปิดใช้เมื่อวงจรประจำวันเดินเครื่องแล้ว</h3>
+        <p>ความรู้จะเชื่อมโน้ตของคุณเข้ากับปัญหา การตัดสินใจ และสมมติฐานที่มันเกิดขึ้นมา เพื่อให้ความคิดต่อยอดกัน แทนที่จะกองอยู่เฉยๆ</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="bottom-nav" id="bottomNav"></div>
+<button class="think-fab-mobile" onclick="openQuickThink()">+</button>
+
+<!-- โมดัลตั้งทิศทางเช้า -->
+<div class="overlay" id="checkinOverlay">
+  <div class="modal">
+    <h2 class="serif">ตั้งทิศทางของคุณ</h2>
+    <p class="modal-sub">เก้าสิบวินาทีตอนนี้ ช่วยประหยัดบ่ายที่วุ่นวายได้มาก</p>
+    <div class="q-block">
+      <label>อะไรคือสิ่งสำคัญที่สุดวันนี้?</label>
+      <textarea id="ci_important" rows="2"></textarea>
+    </div>
+    <div class="q-block">
+      <label>ทำไมมันถึงสำคัญ?</label>
+      <textarea id="ci_why" rows="2"></textarea>
+    </div>
+    <div class="q-block">
+      <label>อะไรอาจทำให้คุณเสียสมาธิหรือติดขัด?</label>
+      <textarea id="ci_blockers" rows="2"></textarea>
+    </div>
+    <div class="q-block">
+      <label>การเคลื่อนไหวหนึ่งอย่างที่จะทำให้วันนี้สำเร็จคืออะไร?</label>
+      <textarea id="ci_move" rows="2"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('checkinOverlay')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="finishCheckIn()">เริ่มวันของฉัน →</button>
+    </div>
+  </div>
+</div>
+
+<!-- โมดัลคิดเร็ว -->
+<div class="overlay" id="quickThinkOverlay">
+  <div class="modal" style="max-width:480px;">
+    <h2 class="serif">คิดเร็ว</h2>
+    <p class="modal-sub">เอาออกจากหัวก่อน แล้วค่อยจัดหมวดทีหลัง</p>
+    <div class="q-block">
+      <textarea id="qt_text" rows="3" placeholder="ไอเดีย คำถาม ปัญหา ข้อสังเกต การตัดสินใจ หรือโน้ตสั้นๆ…" autofocus></textarea>
+    </div>
+    <div class="rt-type-row" id="qtTypeRow"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('quickThinkOverlay')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveQuickThink()">บันทึกลงกล่องรับความคิด</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- STATE ---------------- */
+const NAV_ITEMS = [
+  {id:'today', label:'วันนี้'},
+  {id:'think', label:'คิด'},
+  {id:'decisions', label:'การตัดสินใจ'},
+  {id:'evidence', label:'หลักฐาน'},
+  {id:'knowledge', label:'ความรู้'},
+  {id:'review', label:'ทบทวน'},
+];
+const MOBILE_NAV = ['today','think','decisions','review'];
+const CAPTURE_TYPES = ['ไอเดีย','คำถาม','ปัญหา','ข้อสังเกต','การตัดสินใจ','โน้ต'];
+const BRANCHES = ['คน','สินค้า','กระบวนการ','ราคา','เทคโนโลยี','สภาพแวดล้อม','เงิน','อื่นๆ'];
+
+let state = {
+  direction: {objective:'', why:'', priorities:['','',''], checkin:null, date:null},
+  inbox: [],
+  think: {topic:'', questions:{what:'',why:'',evidence:'',assumption:'',alternative:'',sowhat:'',nowwhat:''}, hypothesis:{believe:'',because:'',support:'',counter:'',test:'',result:'',learned:'',status:'ยังไม่ทดสอบ'}, tree:{}},
+  decisions: [],
+  reviews: [] // {date, wentRight, wentWrong, learned, differently, tomorrow, scores:{focus,execution,decision,learning}}
+};
+let currentView = 'today';
+let quickThinkType = 'ไอเดีย';
+let editingDecisionId = null;
+let saveTimer = null;
+
+const todayKey = () => new Date().toISOString().slice(0,10);
+
+/* ---------------- PERSISTENCE ---------------- */
+async function loadState(){
+  if(typeof window.storage === 'undefined'){ render(); return; }
+  try{
+    const res = await window.storage.get('jsos:state', false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state = Object.assign(state, parsed);
+    }
+  }catch(e){ /* ยังไม่มีข้อมูลที่บันทึกไว้ หรือยังไม่เคยบันทึก */ }
+  render();
+}
+async function persist(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    if(typeof window.storage === 'undefined') return;
+    const payload = JSON.stringify(state);
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        await window.storage.set('jsos:state', payload, false);
+        return;
+      }catch(e){
+        if(attempt===1){
+          console.error('save failed after retry', e);
+          showToast('บันทึกไม่สำเร็จชั่วคราว ลองพิมพ์ต่อได้ตามปกติ');
+        } else {
+          await new Promise(r=>setTimeout(r, 600));
+        }
+      }
+    }
+  }, 300);
+}
+function render(){
+  goto(currentView);
+}
+
+/* ---------------- UTIL ---------------- */
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function autoGrow(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+
+/* ---------------- NAV ---------------- */
+function goto(view){
+  currentView = view;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  renderRail();
+  renderBottomNav();
+  if(view==='today') renderToday();
+  if(view==='think') renderThink();
+  if(view==='decisions') renderDecisions();
+  if(view==='review') renderReview();
+  window.scrollTo({top:0});
+}
+function renderRail(){
+  const nav = document.getElementById('railNav');
+  nav.innerHTML = '';
+  NAV_ITEMS.forEach(item=>{
+    const b = document.createElement('button');
+    b.className = 'rail-item' + (currentView===item.id?' active':'');
+    b.innerHTML = '<span class="dot"></span>' + item.label;
+    b.onclick = ()=>goto(item.id);
+    nav.appendChild(b);
+  });
+}
+function renderBottomNav(){
+  const bn = document.getElementById('bottomNav');
+  bn.innerHTML = '';
+  MOBILE_NAV.forEach(id=>{
+    const item = NAV_ITEMS.find(n=>n.id===id);
+    const b = document.createElement('button');
+    b.className = currentView===id?'active':'';
+    b.innerHTML = '<span class="dot"></span>' + item.label;
+    b.onclick = ()=>goto(id);
+    bn.appendChild(b);
+  });
+}
+
+/* ---------------- วันนี้ ---------------- */
+function renderToday(){
+  const now = new Date();
+  const hour = now.getHours();
+  document.getElementById('greeting').textContent = hour<12?'สวัสดีตอนเช้า':hour<18?'สวัสดีตอนบ่าย':'สวัสดีตอนเย็น';
+  document.getElementById('todayDate').textContent = now.toLocaleDateString('th-TH',{weekday:'long', month:'long', day:'numeric'});
+
+  document.getElementById('objectiveInput').value = state.direction.objective || '';
+  document.getElementById('whyInput').value = state.direction.why || '';
+  autoGrow(document.getElementById('objectiveInput'));
+  autoGrow(document.getElementById('whyInput'));
+
+  const list = document.getElementById('prioritiesList');
+  list.innerHTML = '';
+  [0,1,2].forEach(i=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="pill-num">${i+1}</span><input type="text" placeholder="ลำดับความสำคัญที่ ${i+1}" value="${escapeAttr(state.direction.priorities[i]||'')}">`;
+    li.querySelector('input').addEventListener('input', e=>{
+      state.direction.priorities[i] = e.target.value;
+      persist();
+    });
+    list.appendChild(li);
+  });
+
+  const summary = document.getElementById('checkinSummary');
+  if(state.direction.checkin){
+    const c = state.direction.checkin;
+    summary.innerHTML = `<div style="font-size:13px;color:var(--ink-soft);border-top:1px solid var(--border);padding-top:12px;">
+      <div style="margin-bottom:6px;"><b style="color:var(--ink);">การเคลื่อนไหวสำคัญ:</b> ${escapeHtml(c.move||'—')}</div>
+      <div><b style="color:var(--ink);">ระวังไว้:</b> ${escapeHtml(c.blockers||'—')}</div>
+    </div>`;
+  } else {
+    summary.innerHTML = `<div style="font-size:12.5px;color:var(--ink-faint);border-top:1px solid var(--border);padding-top:12px;">ยังไม่ได้ตั้งทิศทางของวันนี้</div>`;
+  }
+
+  const inboxPrev = document.getElementById('inboxPreview');
+  const recent = state.inbox.slice(-3).reverse();
+  if(recent.length===0){
+    inboxPrev.innerHTML = `<div class="empty-state" style="padding:6px;"><p>ยังไม่มีอะไรถูกบันทึกไว้ ใช้ "+ คิด" ทันทีที่มีอะไรผุดขึ้นในหัว</p></div>`;
+  } else {
+    inboxPrev.innerHTML = recent.map(i=>`<div class="inbox-item"><span class="txt">${escapeHtml(i.text)}</span><span class="tag">${i.type}</span></div>`).join('');
+  }
+}
+function saveObjective(){
+  state.direction.objective = document.getElementById('objectiveInput').value;
+  state.direction.why = document.getElementById('whyInput').value;
+  persist();
+}
+
+/* ---------------- ตั้งทิศทางตอนเช้า ---------------- */
+function openCheckIn(){
+  const c = state.direction.checkin || {};
+  document.getElementById('ci_important').value = c.important || state.direction.objective || '';
+  document.getElementById('ci_why').value = c.why || state.direction.why || '';
+  document.getElementById('ci_blockers').value = c.blockers || '';
+  document.getElementById('ci_move').value = c.move || '';
+  document.getElementById('checkinOverlay').classList.add('active');
+}
+function finishCheckIn(){
+  const c = {
+    important: document.getElementById('ci_important').value,
+    why: document.getElementById('ci_why').value,
+    blockers: document.getElementById('ci_blockers').value,
+    move: document.getElementById('ci_move').value,
+  };
+  state.direction.checkin = c;
+  state.direction.date = todayKey();
+  if(c.important) state.direction.objective = c.important;
+  if(c.why) state.direction.why = c.why;
+  persist();
+  closeModal('checkinOverlay');
+  showToast('ตั้งทิศทางของคุณเรียบร้อยแล้ว');
+  renderToday();
+}
+
+/* ---------------- คิดเร็ว ---------------- */
+function openQuickThink(){
+  document.getElementById('qt_text').value = '';
+  quickThinkType = 'ไอเดีย';
+  renderQtTypes();
+  document.getElementById('quickThinkOverlay').classList.add('active');
+  setTimeout(()=>document.getElementById('qt_text').focus(), 50);
+}
+function renderQtTypes(){
+  const row = document.getElementById('qtTypeRow');
+  row.innerHTML = '';
+  CAPTURE_TYPES.forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'rt-type-btn' + (quickThinkType===t?' on':'');
+    b.style.cssText = 'padding:7px 14px;border:1px solid var(--border);border-radius:20px;font-size:12.5px;background:var(--panel);color:var(--ink-soft);margin:2px 6px 6px 0;';
+    if(quickThinkType===t){ b.style.background='var(--rail-bg)'; b.style.color='#f2efe8'; b.style.borderColor='var(--rail-bg)'; }
+    b.textContent = t;
+    b.onclick = ()=>{ quickThinkType = t; renderQtTypes(); };
+    row.appendChild(b);
+  });
+}
+function saveQuickThink(){
+  const text = document.getElementById('qt_text').value.trim();
+  if(!text){ closeModal('quickThinkOverlay'); return; }
+  state.inbox.push({id:uid(), text, type:quickThinkType, createdAt:Date.now(), status:'open'});
+  persist();
+  closeModal('quickThinkOverlay');
+  showToast('บันทึกลงกล่องรับความคิดแล้ว');
+  if(currentView==='today') renderToday();
+  if(currentView==='think') renderThink();
+}
+
+/* ---------------- คิด ---------------- */
+function renderThink(){
+  document.getElementById('thinkTopicInput').value = state.think.topic || '';
+  renderQuestionEngine();
+  renderHypothesis();
+  renderTree();
+  renderInboxFull();
+}
+function saveThinkTopic(){
+  state.think.topic = document.getElementById('thinkTopicInput').value;
+  persist();
+}
+function switchThinkTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='tab-'+tab));
+}
+
+const QE_FIELDS = [
+  {key:'what', label:'อะไร?', help:'กำลังเกิดอะไรขึ้น?'},
+  {key:'why', label:'ทำไม?', help:'ทำไมมันถึงเกิดขึ้น?'},
+  {key:'evidence', label:'หลักฐาน?', help:'เรารู้อะไรบ้างจริงๆ?'},
+  {key:'assumption', label:'สมมติฐาน?', help:'เรากำลังสมมติอะไรอยู่?'},
+  {key:'alternative', label:'ทางเลือกอื่น?', help:'มีอะไรอื่นที่อธิบายเรื่องนี้ได้อีก?'},
+  {key:'sowhat', label:'แล้วยังไง?', help:'ทำไมเรื่องนี้ถึงสำคัญ?'},
+  {key:'nowwhat', label:'ต่อไปจะทำอะไร?', help:'เราควรทำอะไรต่อ?'},
+];
+function renderQuestionEngine(){
+  const el = document.getElementById('questionEngine');
+  el.innerHTML = '';
+  QE_FIELDS.forEach(f=>{
+    const div = document.createElement('div');
+    div.className = 'qe-item';
+    div.innerHTML = `<div class="qe-label serif">${f.label}</div><div class="qe-help">${f.help}</div>
+      <textarea rows="1" placeholder="เขียนอย่างอิสระ…">${escapeHtml(state.think.questions[f.key]||'')}</textarea>`;
+    const ta = div.querySelector('textarea');
+    autoGrow(ta);
+    ta.addEventListener('input', ()=>{ state.think.questions[f.key]=ta.value; autoGrow(ta); persist(); });
+    el.appendChild(div);
+  });
+}
+
+const HYP_FIELDS = [
+  {key:'believe', label:'ฉันเชื่อว่า'},
+  {key:'because', label:'เพราะว่า'},
+  {key:'support', label:'หลักฐานสนับสนุน'},
+  {key:'counter', label:'หลักฐานค้าน'},
+  {key:'test', label:'ฉันจะทดสอบเรื่องนี้ได้อย่างไร?'},
+  {key:'result', label:'ผลลัพธ์'},
+  {key:'learned', label:'ฉันได้เรียนรู้อะไร?'},
+];
+const HYP_STATUSES = ['ยังไม่ทดสอบ','กำลังทดสอบ','ได้รับการสนับสนุน','ถูกปฏิเสธ','ปรับปรุงแล้ว'];
+function renderHypothesis(){
+  const el = document.getElementById('hypothesisCanvas');
+  el.innerHTML = '';
+  HYP_FIELDS.forEach(f=>{
+    const row = document.createElement('div');
+    row.className = 'hyp-row';
+    row.innerHTML = `<div class="hl">${f.label}</div><textarea rows="1" placeholder="…">${escapeHtml(state.think.hypothesis[f.key]||'')}</textarea>`;
+    const ta = row.querySelector('textarea');
+    autoGrow(ta);
+    ta.addEventListener('input', ()=>{ state.think.hypothesis[f.key]=ta.value; autoGrow(ta); persist(); });
+    el.appendChild(row);
+  });
+  const statusRow = document.createElement('div');
+  statusRow.className = 'hyp-row';
+  statusRow.innerHTML = `<div class="hl">สถานะ</div><div class="status-row" id="hypStatusRow"></div>`;
+  el.appendChild(statusRow);
+  const sr = statusRow.querySelector('#hypStatusRow');
+  HYP_STATUSES.forEach(s=>{
+    const chip = document.createElement('button');
+    chip.className = 'status-chip' + (state.think.hypothesis.status===s?' on':'');
+    chip.textContent = s;
+    chip.onclick = ()=>{ state.think.hypothesis.status = s; persist(); renderHypothesis(); };
+    sr.appendChild(chip);
+  });
+}
+
+function renderTree(){
+  document.getElementById('treeRootLabel').textContent = state.think.topic || 'ปัญหา';
+  const list = document.getElementById('branchList');
+  list.innerHTML = '';
+  BRANCHES.forEach(branch=>{
+    if(!state.think.tree[branch]) state.think.tree[branch] = [];
+    const row = document.createElement('div');
+    row.className = 'branch';
+    const nodesHtml = state.think.tree[branch].map((n,i)=>`
+      <div class="branch-node">
+        <span class="stem"></span>
+        <input type="text" data-branch="${branch}" data-idx="${i}" value="${escapeAttr(n)}" placeholder="เพิ่มปัจจัย…">
+        <button data-branch="${branch}" data-idx="${i}" class="remove-node">×</button>
+      </div>`).join('');
+    row.innerHTML = `<div class="branch-label">${branch}</div><div class="branch-nodes">${nodesHtml}<button class="branch-add" data-branch="${branch}">+ เพิ่มโหนด</button></div>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('input[data-branch]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      state.think.tree[inp.dataset.branch][inp.dataset.idx] = inp.value;
+      persist();
+    });
+  });
+  list.querySelectorAll('.remove-node').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.think.tree[btn.dataset.branch].splice(btn.dataset.idx,1);
+      persist(); renderTree();
+    });
+  });
+  list.querySelectorAll('.branch-add').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.think.tree[btn.dataset.branch].push('');
+      persist(); renderTree();
+      const inputs = list.querySelectorAll(`input[data-branch="${btn.dataset.branch}"]`);
+      if(inputs.length) inputs[inputs.length-1].focus();
+    });
+  });
+}
+
+function renderInboxFull(){
+  const el = document.getElementById('inboxFull');
+  if(state.inbox.length===0){
+    el.innerHTML = `<div class="empty-state"><p>ทุกอย่างที่คุณบันทึกด้วย "+ คิด" จะมาอยู่ตรงนี้ก่อน ยังไม่ต้องหาที่ทางให้มันทันที</p></div>`;
+    return;
+  }
+  el.innerHTML = state.inbox.slice().reverse().map(i=>`
+    <div class="inbox-item">
+      <span class="txt">${escapeHtml(i.text)}</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="tag">${i.type}</span>
+        <button class="btn btn-sm btn-ghost" data-id="${i.id}">ใช้เป็นหัวข้อคิด</button>
+      </div>
+    </div>`).join('');
+  el.querySelectorAll('button[data-id]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const item = state.inbox.find(x=>x.id===b.dataset.id);
+      if(item){
+        state.think.topic = item.text;
+        persist();
+        switchThinkTab('questions');
+        renderThink();
+        showToast('โหลดเข้าไปในพื้นที่คิดแล้ว');
+      }
+    });
+  });
+}
+
+/* ---------------- การตัดสินใจ ---------------- */
+function newDecision(){
+  const d = {
+    id: uid(),
+    question:'', options:[{name:'A',label:''},{name:'B',label:''}],
+    criteria:[
+      {name:'ผลกระทบ', weight:3},{name:'ต้นทุน', weight:2},{name:'ความเสี่ยง', weight:2},
+      {name:'ความเข้ากับกลยุทธ์', weight:2},{name:'ความเร็ว', weight:1}
+    ],
+    scores:{}, // scores[optionName][criterionName] = 1-5
+    tradeoff:'', decision:'', why:'', confidence:'กลาง', reviewDate:'',
+    createdAt: Date.now()
+  };
+  state.decisions.push(d);
+  editingDecisionId = d.id;
+  persist();
+  renderDecisions();
+}
+function renderDecisions(){
+  const list = document.getElementById('decisionsList');
+  if(state.decisions.length===0){
+    list.innerHTML = `<div class="empty-state"><p>การตัดสินใจที่สำคัญ ควรได้รับมากกว่าแค่ความรู้สึกวูบเดียว</p></div>`;
+  } else {
+    list.innerHTML = '';
+    state.decisions.slice().reverse().forEach(d=>{
+      const card = document.createElement('div');
+      card.className = 'card decision-card';
+      const date = new Date(d.createdAt).toLocaleDateString('th-TH',{month:'short',day:'numeric'});
+      card.innerHTML = `<h3>${escapeHtml(d.question)||'ยังไม่มีชื่อเรื่อง'}</h3>
+        <div class="decision-meta">
+          <span>${date}</span>
+          ${d.decision?`<span>เลือก: ${escapeHtml(d.decision)}</span>`:''}
+          ${d.confidence?`<span class="conf-badge conf-${d.confidence}">มั่นใจระดับ${d.confidence}</span>`:''}
+          ${d.reviewDate?`<span>ทบทวนอีกครั้ง ${escapeHtml(d.reviewDate)}</span>`:''}
+        </div>`;
+      card.onclick = ()=>{ editingDecisionId = d.id; renderDecisionEditor(); };
+      list.appendChild(card);
+    });
+  }
+  renderDecisionEditor();
+}
+function renderDecisionEditor(){
+  const el = document.getElementById('decisionEditor');
+  if(!editingDecisionId){ el.innerHTML=''; return; }
+  const d = state.decisions.find(x=>x.id===editingDecisionId);
+  if(!d){ el.innerHTML=''; return; }
+
+  el.innerHTML = `<div class="card">
+    <div class="field-inline">
+      <label>เรื่องที่ต้องตัดสินใจ</label>
+      <input type="text" id="d_question" placeholder="เราควรเปิดตัวแคมเปญ A หรือ B?" value="${escapeAttr(d.question)}">
+    </div>
+
+    <div class="field-inline">
+      <label>ตัวเลือก</label>
+      <div id="d_options"></div>
+      <button class="btn btn-sm" id="d_addOption" style="margin-top:6px;">+ เพิ่มตัวเลือก</button>
+    </div>
+
+    <div class="field-inline">
+      <label>เกณฑ์และน้ำหนัก</label>
+      <table class="criteria-table" id="d_criteriaTable"></table>
+      <button class="btn btn-sm" id="d_addCriterion" style="margin-top:8px;">+ เพิ่มเกณฑ์</button>
+      <p style="font-size:12px;color:var(--ink-faint);margin-top:10px;">คะแนนด้านล่างเป็นแค่ตัวช่วยตัดสินใจ ไม่ใช่คำตอบสุดท้าย</p>
+    </div>
+
+    <div class="field-inline">
+      <label>เลือกทางนี้แล้วต้องแลกกับอะไร?</label>
+      <textarea id="d_tradeoff" rows="2">${escapeHtml(d.tradeoff)}</textarea>
+    </div>
+    <div class="field-inline">
+      <label>คุณเลือกอะไร?</label>
+      <input type="text" id="d_decision" value="${escapeAttr(d.decision)}">
+    </div>
+    <div class="field-inline">
+      <label>ทำไม?</label>
+      <textarea id="d_why" rows="2">${escapeHtml(d.why)}</textarea>
+    </div>
+    <div class="two-col">
+      <div class="field-inline">
+        <label>ความมั่นใจ</label>
+        <select id="d_confidence">
+          ${['ต่ำ','กลาง','สูง'].map(c=>`<option ${d.confidence===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field-inline">
+        <label>วันที่ควรทบทวนอีกครั้ง</label>
+        <input type="date" id="d_reviewDate" value="${escapeAttr(d.reviewDate)}">
+      </div>
+    </div>
+    <div class="btn-row" style="margin-top:18px;">
+      <button class="btn btn-primary" id="d_save">บันทึกการตัดสินใจ</button>
+      <button class="btn btn-ghost" id="d_delete">ลบ</button>
+    </div>
+  </div>`;
+
+  renderOptions(d);
+  renderCriteriaTable(d);
+
+  document.getElementById('d_addOption').onclick = ()=>{
+    const letters = 'ABCDEFGH';
+    const nextLetter = letters[d.options.length] || uid().slice(0,1).toUpperCase();
+    d.options.push({name:nextLetter, label:''});
+    renderOptions(d); renderCriteriaTable(d); persist();
+  };
+  document.getElementById('d_addCriterion').onclick = ()=>{
+    d.criteria.push({name:'', weight:1});
+    renderCriteriaTable(d); persist();
+  };
+  document.getElementById('d_save').onclick = ()=>{
+    d.question = document.getElementById('d_question').value;
+    d.tradeoff = document.getElementById('d_tradeoff').value;
+    d.decision = document.getElementById('d_decision').value;
+    d.why = document.getElementById('d_why').value;
+    d.confidence = document.getElementById('d_confidence').value;
+    d.reviewDate = document.getElementById('d_reviewDate').value;
+    persist();
+    showToast('บันทึกการตัดสินใจแล้ว');
+    renderDecisions();
+  };
+  document.getElementById('d_delete').onclick = ()=>{
+    state.decisions = state.decisions.filter(x=>x.id!==d.id);
+    editingDecisionId = null;
+    persist();
+    renderDecisions();
+  };
+  document.getElementById('d_question').addEventListener('input', e=>{ d.question=e.target.value; persist(); });
+}
+function renderOptions(d){
+  const wrap = document.getElementById('d_options');
+  wrap.innerHTML = d.options.map((o,i)=>`
+    <div class="option-row">
+      <span class="pill-num">${o.name}</span>
+      <input type="text" data-idx="${i}" class="opt-input" placeholder="อธิบายตัวเลือก ${o.name}" value="${escapeAttr(o.label)}">
+    </div>`).join('');
+  wrap.querySelectorAll('.opt-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ d.options[inp.dataset.idx].label = inp.value; persist(); renderCriteriaTable(d); });
+  });
+}
+function renderCriteriaTable(d){
+  const table = document.getElementById('d_criteriaTable');
+  let head = '<tr><th>เกณฑ์</th><th>น้ำหนัก</th>' + d.options.map(o=>`<th>${o.name}</th>`).join('') + '</tr>';
+  let rows = d.criteria.map((c,ci)=>{
+    let cells = d.options.map(o=>{
+      const val = (d.scores[o.name] && d.scores[o.name][c.name]) || '';
+      return `<td><input type="number" min="1" max="5" data-crit="${ci}" data-opt="${o.name}" class="score-input" value="${val}"></td>`;
+    }).join('');
+    return `<tr><td><input type="text" data-idx="${ci}" class="crit-name" value="${escapeAttr(c.name)}" placeholder="เกณฑ์"></td>
+      <td><input type="number" min="1" max="5" data-idx="${ci}" class="crit-weight" value="${c.weight}"></td>${cells}</tr>`;
+  }).join('');
+  // ผลรวม
+  let totalCells = d.options.map(o=>{
+    let total = 0;
+    d.criteria.forEach(c=>{
+      const s = (d.scores[o.name] && d.scores[o.name][c.name]) || 0;
+      total += s * (c.weight||0);
+    });
+    return `<td class="score-cell">${total || 0}</td>`;
+  }).join('');
+  rows += `<tr class="score-total-row"><td>คะแนนรวมถ่วงน้ำหนัก</td><td></td>${totalCells}</tr>`;
+  table.innerHTML = head + rows;
+
+  table.querySelectorAll('.crit-name').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ d.criteria[inp.dataset.idx].name = inp.value; persist(); });
+  });
+  table.querySelectorAll('.crit-weight').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ d.criteria[inp.dataset.idx].weight = Number(inp.value)||0; persist(); renderCriteriaTable(d); });
+  });
+  table.querySelectorAll('.score-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const critName = d.criteria[inp.dataset.crit].name;
+      const optName = inp.dataset.opt;
+      if(!d.scores[optName]) d.scores[optName] = {};
+      d.scores[optName][critName] = Number(inp.value)||0;
+      persist(); renderCriteriaTable(d);
+    });
+  });
+}
+
+/* ---------------- ทบทวน ---------------- */
+function renderReview(){
+  const key = todayKey();
+  let today = state.reviews.find(r=>r.date===key);
+  if(!today){
+    today = {date:key, wentRight:'', wentWrong:'', learned:'', differently:'', tomorrow:'', scores:{focus:0,execution:0,decision:0,learning:0}, completed:false};
+  }
+  const el = document.getElementById('reviewToday');
+  el.innerHTML = `
+    <p class="section-title">ปิดวันของคุณ — ${new Date().toLocaleDateString('th-TH',{month:'long',day:'numeric'})}</p>
+    <div class="field-inline"><label>อะไรที่เป็นไปได้ดี?</label><textarea id="rv_right" rows="2">${escapeHtml(today.wentRight)}</textarea></div>
+    <div class="field-inline"><label>อะไรที่ไม่เป็นไปตามแผน?</label><textarea id="rv_wrong" rows="2">${escapeHtml(today.wentWrong)}</textarea></div>
+    <div class="field-inline"><label>ฉันได้เรียนรู้อะไร?</label><textarea id="rv_learned" rows="2">${escapeHtml(today.learned)}</textarea></div>
+    <div class="field-inline"><label>ถ้าย้อนกลับไปได้ ฉันจะทำอะไรต่างออกไป?</label><textarea id="rv_differently" rows="2">${escapeHtml(today.differently)}</textarea></div>
+    <div class="field-inline"><label>สิ่งเดียวที่ควรปรับปรุงพรุ่งนี้</label><textarea id="rv_tomorrow" rows="2">${escapeHtml(today.tomorrow)}</textarea></div>
+    <div class="field-inline">
+      <label>ให้คะแนนวันนี้ (ไม่บังคับ)</label>
+      <div id="rv_ratings"></div>
+    </div>
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-primary" id="rv_complete">ทบทวนเสร็จสิ้น</button>
+    </div>`;
+
+  const dims = [['focus','โฟกัส'],['execution','การลงมือทำ'],['decision','คุณภาพการตัดสินใจ'],['learning','การเรียนรู้']];
+  const ratingsEl = document.getElementById('rv_ratings');
+  ratingsEl.innerHTML = dims.map(([k,label])=>`
+    <div style="margin-bottom:10px;">
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">${label}</div>
+      <div class="self-rate" data-dim="${k}">
+        ${[1,2,3,4,5].map(n=>`<button data-val="${n}" class="${today.scores[k]===n?'on':''}">${n}</button>`).join('')}
+      </div>
+    </div>`).join('');
+  ratingsEl.querySelectorAll('.self-rate').forEach(group=>{
+    group.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        today.scores[group.dataset.dim] = Number(btn.dataset.val);
+        group.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b===btn));
+      });
+    });
+  });
+
+  document.getElementById('rv_complete').onclick = ()=>{
+    today.wentRight = document.getElementById('rv_right').value;
+    today.wentWrong = document.getElementById('rv_wrong').value;
+    today.learned = document.getElementById('rv_learned').value;
+    today.differently = document.getElementById('rv_differently').value;
+    today.tomorrow = document.getElementById('rv_tomorrow').value;
+    today.completed = true;
+    const idx = state.reviews.findIndex(r=>r.date===key);
+    if(idx>=0) state.reviews[idx] = today; else state.reviews.push(today);
+    persist();
+    showToast('ปิดวันแล้ว');
+    renderReview();
+  };
+
+  renderWeeklyBars();
+  renderReviewHistory();
+}
+function renderWeeklyBars(){
+  const el = document.getElementById('weeklyBars');
+  const last7 = state.reviews.slice(-7);
+  const dims = [['focus','โฟกัส'],['execution','การลงมือทำ'],['decision','การตัดสินใจ'],['learning','การเรียนรู้']];
+  if(last7.length===0){
+    el.innerHTML = `<div class="empty-state" style="padding:6px;"><p>ทบทวนตอนกลางคืนสักสองสามครั้ง แล้วจะเริ่มเห็นแพทเทิร์นรายสัปดาห์ของคุณ</p></div>`;
+    return;
+  }
+  el.innerHTML = dims.map(([k,label])=>{
+    const vals = last7.map(r=>r.scores[k]||0).filter(v=>v>0);
+    const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
+    const pct = (avg/5)*100;
+    return `<div class="score-bar-row">
+      <span class="lbl">${label}</span>
+      <div class="score-track"><div class="score-fill" style="width:${pct}%"></div></div>
+      <span class="val mono">${avg.toFixed(1)}</span>
+    </div>`;
+  }).join('');
+}
+function renderReviewHistory(){
+  const el = document.getElementById('reviewHistory');
+  const completed = state.reviews.filter(r=>r.completed).slice().reverse();
+  if(completed.length===0){
+    el.innerHTML = `<div class="empty-state" style="padding:6px;"><p>ยังไม่มีการทบทวนที่ปิดไว้</p></div>`;
+    return;
+  }
+  el.innerHTML = completed.map(r=>`
+    <div class="history-item">
+      <div class="hdate">${r.date}</div>
+      ${r.learned?`<div class="hline"><b>ได้เรียนรู้:</b> ${escapeHtml(r.learned)}</div>`:''}
+      ${r.tomorrow?`<div class="hline"><b>พรุ่งนี้:</b> ${escapeHtml(r.tomorrow)}</div>`:''}
+    </div>`).join('');
+}
+
+/* ---------------- ESCAPING ---------------- */
+function escapeHtml(str){
+  return String(str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(str){ return escapeHtml(str); }
+
+/* ---------------- INIT ---------------- */
+document.getElementById('railDate').textContent = new Date().toLocaleDateString('th-TH',{weekday:'short', month:'short', day:'numeric'});
+renderRail();
+renderBottomNav();
+goto('today');
+loadState();
+</script>
+</body>
+</html>
